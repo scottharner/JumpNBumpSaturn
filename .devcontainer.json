@@ -1,6 +1,0 @@
-{
-  "image": "registry.gitlab.com/doragasu/docker-sgdk:v1.90",
-  "remoteEnv": {
-    "DISPLAY": ""
-  }
-}
