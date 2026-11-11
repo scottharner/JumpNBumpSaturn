@@ -14,7 +14,6 @@ JO_COMPILE_WITH_DUAL_CPU_MODULE = 0
 
 JO_DEBUG = 0
 JO_NTSC = 1
-JO_COMPILE_USING_SGL = 1
 
 #
 # Source files
@@ -23,7 +22,6 @@ JO_COMPILE_USING_SGL = 1
 SRCS = \
     ../src/main.c \
 	../src/pcmsys.c \
-	../src/hisc.c \
 	../src/utils.c \
 	../src/input.c
 
@@ -49,8 +47,8 @@ clean:
 
 prepare_cd:
 	touch cd/0.bin
-	cp ../assets/sfx/*.PCM cd/
-	cp -r ../assets/tex/* cd/
-	cp -r ../assets/fnt/* cd/
-	cp -r ../drivers/* cd/
-	cp ../assets/bgm/*.wav .
+#	cp ../assets/sfx/*.PCM cd/
+#	cp -r ../assets/tex/* cd/
+#	cp -r ../assets/fnt/* cd/
+#	cp -r ../drivers/* cd/
+#	cp ../assets/bgm/*.wav .
