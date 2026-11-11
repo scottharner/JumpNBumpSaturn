@@ -46,8 +46,7 @@ clean:
 
 prepare_cd:
 	touch cd/0.bin
-#	cp ../assets/sfx/*.PCM cd/
+	cp ../assets/sfx/*.PCM cd/
 #	cp -r ../assets/tex/* cd/
 #	cp -r ../assets/fnt/* cd/
-#	cp -r ../drivers/* cd/
-#	cp ../assets/bgm/*.wav .
+	cp ../assets/bgm/*.wav .

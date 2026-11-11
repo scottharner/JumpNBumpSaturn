@@ -10,3 +10,15 @@ saturn
   - ./build.bat
 - i am running the following cmd from a windows cmd prompt in the build dir to test in mednafen
   - run_with_mednafen.bat
+- audio
+  - after testing, it seems that i can use native jo engine for sounds now and not rely on ponesound
+    - there were some updates related to this so it might have fixed issues i had in earlier projects
+  - the sgdk background music comes as vgm and needs converted to wav
+    - use vgmplay utility (https://github.com/vgmrips/vgmplay-legacy)
+    - set LogSound to 1 in vgmplay.ini
+    - drop the vgm file onto vgmplay.exe
+    - wav file is created beside the original file that was dropped
+    - the wav still sounded a bit off so i converted to 44100 bitrate in audacity and exported as a new wav
+  - use ffmpeg (https://www.ffmpeg.org) for the original sound effect wav files
+    - this cmd worked
+      - ffmpeg.exe -i jump_14kHz.wav -f s16be -ar 44100 J.PCM
