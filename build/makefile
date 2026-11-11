@@ -21,7 +21,6 @@ JO_NTSC = 1
 
 SRCS = \
     ../src/main.c \
-	../src/pcmsys.c \
 	../src/utils.c \
 	../src/input.c
 
@@ -35,7 +34,7 @@ COMPILER_DIR = D:/joengine/Compiler
 include $(COMPILER_DIR)/COMMON/jo_engine_makefile
 
 MKISOFS = "D:/joengine/Compiler/WINDOWS/Other Utilities/mkisofs.exe"
-CUE_MAKER = "D:\joengine\Compiler\WINDOWS\Other Utilities\JoEngineCueMaker.exe"
+CUE_MAKER = "D:/joengine/Compiler/WINDOWS/Other Utilities/JoEngineCueMaker.exe"
 
 $(TARGET2): prepare_cd
 

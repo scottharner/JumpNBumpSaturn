@@ -63,3 +63,4 @@ game.raw
 /build/cd/*.bin
 /build/cd/sdrv.bin
 /build/*.wav
+/build/*.bin

@@ -1,0 +1,12 @@
+saturn
+------
+- i am building with jo engine 2026.3
+- paths to review and update as appropriate
+  - paths to d:/joengine in makefile
+  - path to C:/msys64/usr/bin/sh.exe in build.bat
+  - path to d:\joengine\Emulators in run_with_mednafen.bat
+- i am running the following cmds from the build dir in mingw32
+  - ./build.bat clean
+  - ./build.bat
+- i am running the following cmd from a windows cmd prompt in the build dir to test in mednafen
+  - run_with_mednafen.bat
