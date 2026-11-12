@@ -27,6 +27,7 @@
 */
 
 #include <jo/jo.h>
+#include "main.h"
 
 // #include <genesis.h>
 // #include <libres.h>
@@ -44,6 +45,11 @@
 // #define GAME_STATE_MENU 1
 // #define GAME_STATE_GAME 2
 // #define GAME_STATE_END  3
+#define MAX_ACTION_CYCLES 10000
+#define TITLE_TRACKID 3
+#define GAME_TRACKID 2
+static int action_counter;
+static mode current_game_mode;
 
 // static int game_state = GAME_STATE_BOOT;
 
@@ -65,6 +71,13 @@
 
 // const u16 (*ban_map)[32];
 
+void reset_game()
+{
+	action_counter = 0;
+	current_game_mode = MODE_TITLE;
+	// load_game_mode = MODE_INTRO_GRAPHIC;
+	// load_action = load_pregame_assets;
+}
 
 void init() 
 {
@@ -82,7 +95,7 @@ void init()
 	// load_sound_config();
 	// CDDA_SetVolume(music_vol);
 
-	// reset_game();
+	reset_game();
 }
 
 // static void initProgram() {
@@ -149,9 +162,6 @@ void init()
 //         portMapping[2] = JOY_7;
 //         portMapping[3] = JOY_8;
 //     }
-
-//     displayLogo();
-//     displaySgdkLogo();
 
 //     // set all palette to black
 //     PAL_setColors(0, (u16*) &palette_black[0], 64, DMA);
@@ -333,9 +343,68 @@ void init()
 //     return modu(op1, max);
 // }
 
+void title() 
+{
+	if (action_counter <= 1)
+	{
+		jo_audio_stop_cd();
+		jo_audio_play_cd_track(TITLE_TRACKID, TITLE_TRACKID, true);
+	}
+
+
+}
+
 void update_game()
 {
-	jo_printf_with_color(0, 0, JO_COLOR_INDEX_White, "Hello world!");
+	if (action_counter == 0)
+		jo_disable_all_screen_color_filter(); // need to clear at start of game loop for smoother transitions
+	
+	if (action_counter < MAX_ACTION_CYCLES)
+		action_counter++;
+
+	switch (current_game_mode)
+	{
+		// case MODE_INTRO_GRAPHIC:
+		// 	intro_graphic();
+		// 	break;
+
+		// case MODE_INTRO_TEXT:
+		// 	run_intro_text();
+		// 	break;
+
+		case MODE_TITLE:
+			title();
+			break;
+
+		// case MODE_INSTRUCTIONS:
+		// 	instructions();
+		// 	break;
+
+		// case MODE_CREDITS:
+		// 	credits();
+		// 	break;
+
+		// case MODE_HIGH_SCORES:
+		// 	high_scores();
+		// 	break;
+
+		// case MODE_HOF:
+		// 	hof();
+		// 	break;
+
+		// case MODE_GAME:
+		// 	play();
+		// 	break;
+
+		// case MODE_LOAD:
+		// 	load();
+		// 	break;
+
+		default:
+			jo_printf_with_color(0, 0, JO_COLOR_INDEX_White, "Hello world!");
+			action_counter = 0; // always reset as we are not timing anything
+			break;
+	}
 }
 
 void jo_main(void) 

@@ -1,0 +1,6 @@
+order of operations
+-------------------
+- loading screen (load all or some?) - lets try without to start
+- eliminate the logos -> volcano -> sgdk
+- title screen
+- credits are a part of the title screen at the bottom
