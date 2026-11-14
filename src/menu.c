@@ -1,16 +1,25 @@
-#include <genesis.h>
+#include <jo/jo.h>
 
-#include "bank.h"
+// #include "bank.h"
 #include "global.h"
-#include "objects.h"
-#include "rabbits.h"
-#include "sfx.h"
-#include "resources.h"
+// #include "objects.h"
+// #include "rabbits.h"
+// #include "sfx.h"
+// #include "resources.h"
 
-static u8 new_game_flag;
-static u32 cur_message;
-static u16 textTimeOut = 0;
-static u16 fadeTextPalette[64];
+#define DEFAULT_TEXT_FADE_STEP 3
+#define MAX_TEXT_DISPLAY_TIMEOUT 30
+
+static unsigned char new_game_flag;
+static unsigned int cur_message;
+static char text_fade_step;
+static unsigned short text_fade_timeout;
+static unsigned short text_display_timeout;
+static unsigned short text_blank_timeout;
+static bool is_text_fading;
+
+// static unsigned short fade_text_palette[64];
+static const char * const message_blank = "                                                                  ";
 
 static const char * const message[] = {
 	"Jump 'n Bump "JNB_VERSION,
@@ -31,6 +40,8 @@ static const char * const message[] = {
 
     "Demake for Genesis by Philippe Simons",
     "Special thanks to Romain Killian",
+
+    "Port to Saturn by Scott Harner.", "",
 
 	"http://www.icculus.org/jumpnbump/", "",
 
@@ -65,428 +76,488 @@ static const char * const message[] = {
 	"Anders Nilsson:"," equel@swipnet.se"
 };
 
-static const u16 menu_map[32][32] = {
-    {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0},
-    {1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1},
-    {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
-    {1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
-    {2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 1, 3, 3, 3, 1, 1, 1},
-    {2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-};
+// static const unsigned short menu_map[32][32] = 
+// {
+//     {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0},
+//     {1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1},
+//     {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+//     {1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1},
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
+//     {1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1},
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 1},
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+//     {1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1},
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+//     {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
+//     {2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 1, 3, 3, 3, 1, 1, 1},
+//     {2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+// };
 
 #define NUM_MESSAGES (sizeof(message)/sizeof(char *))
 
-void initMenu() {
-    for (u16 c1 = 0; c1 < JNB_MAX_PLAYERS; c1++) {
-        player[c1].enabled = 0;
-        player[c1].x = (long) rnd(150) << 16;
-        player[c1].y = (160L + c1 * 2) << 16;
-        player[c1].x_add = 0;
-        player[c1].y_add = 0;
-        player[c1].direction = rnd(2);
-        player[c1].jump_ready = 1;
-        player[c1].anim = 0;
-        player[c1].frame = 0;
-        player[c1].frame_tick = 0;
-        player[c1].image = player_anims[0].frame[0].image;
+void init_menu() 
+{
+//     for (unsigned short c1 = 0; c1 < JNB_MAX_PLAYERS; c1++) {
+//         player[c1].enabled = 0;
+//         player[c1].x = (long) rnd(150) << 16;
+//         player[c1].y = (160L + c1 * 2) << 16;
+//         player[c1].x_add = 0;
+//         player[c1].y_add = 0;
+//         player[c1].direction = rnd(2);
+//         player[c1].jump_ready = 1;
+//         player[c1].anim = 0;
+//         player[c1].frame = 0;
+//         player[c1].frame_tick = 0;
+//         player[c1].image = player_anims[0].frame[0].image;
 
-        ai[c1] = FALSE; // set AI to false
-    }
+//         ai[c1] = FALSE; // set AI to false
+//     }
 
-    ban_map = (u16 (*)[32])menu_map;
+//     ban_map = (unsigned short (*)[32])menu_map;
 
-    /* After a game, we have to release the keys, cause AI player
-        * can still be using them */
-    addkey((KEY_PL1_LEFT & 0x7fff) | 0x8000);
-    addkey((KEY_PL2_LEFT & 0x7fff) | 0x8000);
-    addkey((KEY_PL3_LEFT & 0x7fff) | 0x8000);
-    addkey((KEY_PL4_LEFT & 0x7fff) | 0x8000);
+//     /* After a game, we have to release the keys, cause AI player
+//         * can still be using them */
+//     addkey((KEY_PL1_LEFT & 0x7fff) | 0x8000);
+//     addkey((KEY_PL2_LEFT & 0x7fff) | 0x8000);
+//     addkey((KEY_PL3_LEFT & 0x7fff) | 0x8000);
+//     addkey((KEY_PL4_LEFT & 0x7fff) | 0x8000);
 
-    addkey((KEY_PL1_RIGHT & 0x7fff) | 0x8000);
-    addkey((KEY_PL2_RIGHT & 0x7fff) | 0x8000);
-    addkey((KEY_PL3_RIGHT & 0x7fff) | 0x8000);
-    addkey((KEY_PL4_RIGHT & 0x7fff) | 0x8000);
+//     addkey((KEY_PL1_RIGHT & 0x7fff) | 0x8000);
+//     addkey((KEY_PL2_RIGHT & 0x7fff) | 0x8000);
+//     addkey((KEY_PL3_RIGHT & 0x7fff) | 0x8000);
+//     addkey((KEY_PL4_RIGHT & 0x7fff) | 0x8000);
 
-    addkey((KEY_PL1_JUMP & 0x7fff) | 0x8000);
-    addkey((KEY_PL2_JUMP & 0x7fff) | 0x8000);
-    addkey((KEY_PL3_JUMP & 0x7fff) | 0x8000);
-    addkey((KEY_PL4_JUMP & 0x7fff) | 0x8000);
+//     addkey((KEY_PL1_JUMP & 0x7fff) | 0x8000);
+//     addkey((KEY_PL2_JUMP & 0x7fff) | 0x8000);
+//     addkey((KEY_PL3_JUMP & 0x7fff) | 0x8000);
+//     addkey((KEY_PL4_JUMP & 0x7fff) | 0x8000);
 
-    clear_objects();
+//     clear_objects();
 
     new_game_flag = 0;
     cur_message = 0;
-    textTimeOut = 60;
+    text_fade_step = DEFAULT_TEXT_FADE_STEP;
+    text_fade_timeout = 0;
+    is_text_fading = false;
+    text_display_timeout = 0;
+    text_blank_timeout = 0;
 }
 
-void loadMenu() {
-    memcpy(&palette[0], image_menu.palette->data, 16 * 2);
+// void loadMenu() {
+//     memcpy(&palette[0], image_menu.palette->data, 16 * 2);
 
-    VDP_loadTileSet(image_menu.tileset, VDPTilesFilled, DMA);
-    VDP_setTileMapEx(BG_B, image_menu.tilemap, TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, VDPTilesFilled), 0, 0, 0, 0, 40, 28, DMA);
-    VDP_setTileMapEx(BG_A, image_menu.tilemap, TILE_ATTR_FULL(PAL0, TRUE, FALSE, FALSE, VDPTilesFilled), 0, 16, 0, 28, 40, 6, DMA);
-    VDPTilesFilled += image_menu.tileset->numTile;
+//     VDP_loadTileSet(image_menu.tileset, VDPTilesFilled, DMA);
+//     VDP_setTileMapEx(BG_B, image_menu.tilemap, TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, VDPTilesFilled), 0, 0, 0, 0, 40, 28, DMA);
+//     VDP_setTileMapEx(BG_A, image_menu.tilemap, TILE_ATTR_FULL(PAL0, TRUE, FALSE, FALSE, VDPTilesFilled), 0, 16, 0, 28, 40, 6, DMA);
+//     VDPTilesFilled += image_menu.tileset->numTile;
 
-    SYS_doVBlankProcess();
+//     SYS_doVBlankProcess();
 
-    VDP_loadFont(&font_default, CPU);
-    // re-pack memory as VDP_lontFont allocate memory to unpack font
-    MEM_pack();
+//     VDP_loadFont(&font_default, CPU);
+//     // re-pack memory as VDP_lontFont allocate memory to unpack font
+//     MEM_pack();
 
-    VDP_setTextPalette(PAL1);
-    palette[31] = RGB24_TO_VDPCOLOR(0xffffff);
-    memcpy(&fadeTextPalette[0], &palette[0], 64 * 2);
-    fadeTextPalette[31] = RGB24_TO_VDPCOLOR(0);
+//     VDP_setTextPalette(PAL1);
+//     palette[31] = RGB24_TO_VDPCOLOR(0xffffff);
+//     memcpy(&fadeTextPalette[0], &palette[0], 64 * 2);
+//     fadeTextPalette[31] = RGB24_TO_VDPCOLOR(0);
+// }
+
+// void unloadMenu() {
+//     SYS_disableInts();
+//     VDP_clearPlane(BG_B, TRUE);
+//     VDP_clearPlane(BG_A, TRUE);
+//     SYS_enableInts();
+
+//     VDPTilesFilled -= image_menu.tileset->numTile;
+//     palette[31] = sprite_pallette.data[15];
+// }
+
+void process_text_fade()
+{
+    text_fade_timeout += text_fade_step;
+    if (text_fade_timeout >= 255)
+    {
+        text_fade_timeout = 255;
+        text_fade_step = -DEFAULT_TEXT_FADE_STEP;
+        is_text_fading = false;
+    }
+    else if (text_fade_timeout <= 0)
+    {
+        text_fade_timeout = 0;
+        text_fade_step = DEFAULT_TEXT_FADE_STEP;
+        is_text_fading = false;
+    }
+
+    jo_color faded_color = jo_color_mix(JO_COLOR_Black, JO_COLOR_White, text_fade_timeout);
+    ((jo_color *)JO_VDP2_CRAM)[1] = faded_color;
 }
 
-void unloadMenu() {
-    SYS_disableInts();
-    VDP_clearPlane(BG_B, TRUE);
-    VDP_clearPlane(BG_A, TRUE);
-    SYS_enableInts();
+unsigned short menu_frame() {
 
-    VDPTilesFilled -= image_menu.tileset->numTile;
-    palette[31] = sprite_pallette.data[15];
-}
+    // update_player_actions();
 
-u16 menuFrame() {
+    // for (s32 c1 = 0; c1 < JNB_MAX_PLAYERS; c1++) {
+    //     if (new_game_flag == 1) {
+    //         if ((player[c1].x >> 16) > (165 + c1 * 2)) {
+    //             if (player[c1].x_add < 0)
+    //                 player[c1].x_add += 16384;
+    //             else
+    //                 player[c1].x_add += 12288;
+    //             if (player[c1].x_add > 98304L)
+    //                 player[c1].x_add = 98304L;
+    //             player[c1].direction = 0;
+    //             if (player[c1].anim == 0) {
+    //                 player[c1].anim = 1;
+    //                 player[c1].frame = 0;
+    //                 player[c1].frame_tick = 0;
+    //                 player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //             }
+    //             player[c1].enabled = 1;
+    //         }
+    //         if (!player[c1].action_up) {
+    //             if (player[c1].y_add < 0) {
+    //                 player[c1].y_add += 32768;
+    //                 if (player[c1].y_add > 0)
+    //                     player[c1].y_add = 0;
+    //             }
+    //         }
+    //         player[c1].y_add += 12288;
+    //         if (player[c1].y_add > 36864 && player[c1].anim != 3) {
+    //             player[c1].anim = 3;
+    //             player[c1].frame = 0;
+    //             player[c1].frame_tick = 0;
+    //             player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //         }
+    //         player[c1].y += player[c1].y_add;
+    //         if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
+    //             if ((player[c1].y >> 16) > (160 + c1 * 2)) {
+    //                 player[c1].y = (160L + c1 * 2) << 16;
+    //                 player[c1].y_add = 0;
+    //                 if (player[c1].anim != 0 && player[c1].anim != 1) {
+    //                     player[c1].anim = 0;
+    //                     player[c1].frame = 0;
+    //                     player[c1].frame_tick = 0;
+    //                     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //                 }
+    //             }
+    //         } else {
+    //             if ((player[c1].y >> 16) > (138 + c1 * 2)) {
+    //                 player[c1].y = (138L + c1 * 2) << 16;
+    //                 player[c1].y_add = 0;
+    //                 if (player[c1].anim != 0 && player[c1].anim != 1) {
+    //                     player[c1].anim = 0;
+    //                     player[c1].frame = 0;
+    //                     player[c1].frame_tick = 0;
+    //                     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //                 }
+    //                 if (!player[c1].action_up)
+    //                     player[c1].jump_ready = 1;
+    //             }
+    //         }
+    //         player[c1].x += player[c1].x_add;
+    //         if ((player[c1].y >> 16) > (138 + c1 * 2)) {
+    //             if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (190 + c1 * 2)) {
+    //                 player[c1].x = (165L + c1 * 2) << 16;
+    //                 player[c1].x_add = 0;
+    //             }
+    //             if ((player[c1].x >> 16) > (190 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
+    //                 player[c1].x = (208L + c1 * 2) << 16;
+    //                 player[c1].x_add = 0;
+    //             }
+    //         }
+    //     } else {
+    //         if (player[c1].action_left && player[c1].action_right) {
+    //             if (player[c1].direction == 1) {
+    //                 if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
+    //                     if (player[c1].x_add > 0) {
+    //                         player[c1].x_add -= 16384;
+    //                         if ((player[c1].y >> 16) >= (160 + c1 * 2))
+    //                             add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                     } else
+    //                         player[c1].x_add -= 12288;
+    //                 }
+    //                 if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
+    //                     if (player[c1].x_add > 0) {
+    //                         player[c1].x_add -= 16384;
+    //                         if ((player[c1].y >> 16) >= (138 + c1 * 2))
+    //                             add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                     } else
+    //                         player[c1].x_add -= 12288;
+    //                 }
+    //                 if (player[c1].x_add < -98304L)
+    //                     player[c1].x_add = -98304L;
+    //                 player[c1].direction = 1;
+    //                 if (player[c1].anim == 0) {
+    //                     player[c1].anim = 1;
+    //                     player[c1].frame = 0;
+    //                     player[c1].frame_tick = 0;
+    //                     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //                 }
+    //             } else {
+    //                 if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
+    //                     if (player[c1].x_add < 0) {
+    //                         player[c1].x_add += 16384;
+    //                         if ((player[c1].y >> 16) >= (160 + c1 * 2))
+    //                             add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                     } else
+    //                         player[c1].x_add += 12288;
+    //                 }
+    //                 if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
+    //                     if (player[c1].x_add < 0) {
+    //                         player[c1].x_add += 16384;
+    //                         if ((player[c1].y >> 16) >= (138 + c1 * 2))
+    //                             add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                     } else
+    //                         player[c1].x_add += 12288;
+    //                 }
+    //                 if (player[c1].x_add > 98304L)
+    //                     player[c1].x_add = 98304L;
+    //                 player[c1].direction = 0;
+    //                 if (player[c1].anim == 0) {
+    //                     player[c1].anim = 1;
+    //                     player[c1].frame = 0;
+    //                     player[c1].frame_tick = 0;
+    //                     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //                 }
+    //             }
+    //         } else if (player[c1].action_left) {
+    //             if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
+    //                 if (player[c1].x_add > 0) {
+    //                     player[c1].x_add -= 16384;
+    //                     if ((player[c1].y >> 16) >= (160 + c1 * 2))
+    //                         add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                 } else
+    //                     player[c1].x_add -= 12288;
+    //             }
+    //             if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
+    //                 if (player[c1].x_add > 0) {
+    //                     player[c1].x_add -= 16384;
+    //                     if ((player[c1].y >> 16) >= (138 + c1 * 2))
+    //                         add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                 } else
+    //                     player[c1].x_add -= 12288;
+    //             }
+    //             if (player[c1].x_add < -98304L)
+    //                 player[c1].x_add = -98304L;
+    //             player[c1].direction = 1;
+    //             if (player[c1].anim == 0) {
+    //                 player[c1].anim = 1;
+    //                 player[c1].frame = 0;
+    //                 player[c1].frame_tick = 0;
+    //                 player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //             }
+    //         } else if (player[c1].action_right) {
+    //             if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
+    //                 if (player[c1].x_add < 0) {
+    //                     player[c1].x_add += 16384;
+    //                     if ((player[c1].y >> 16) >= (160 + c1 * 2))
+    //                         add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                 } else
+    //                     player[c1].x_add += 12288;
+    //             }
+    //             if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
+    //                 if (player[c1].x_add < 0) {
+    //                     player[c1].x_add += 16384;
+    //                     if ((player[c1].y >> 16) >= (138 + c1 * 2))
+    //                         add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                 } else
+    //                     player[c1].x_add += 12288;
+    //             }
+    //             if (player[c1].x_add > 98304L)
+    //                 player[c1].x_add = 98304L;
+    //             player[c1].direction = 0;
+    //             if (player[c1].anim == 0) {
+    //                 player[c1].anim = 1;
+    //                 player[c1].frame = 0;
+    //                 player[c1].frame_tick = 0;
+    //                 player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //             }
+    //         } else {
+    //             if (((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) && (player[c1].y >> 16) >= (160 + c1 * 2)) {
+    //                 if (player[c1].x_add < 0) {
+    //                     player[c1].x_add += 16384;
+    //                     if (player[c1].x_add > 0)
+    //                         player[c1].x_add = 0;
+    //                     add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                 } else if (player[c1].x_add > 0) {
+    //                     player[c1].x_add -= 16384;
+    //                     if (player[c1].x_add < 0)
+    //                         player[c1].x_add = 0;
+    //                     add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                 }
+    //             }
+    //             if ((((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) && (player[c1].y >> 16) >= (138 + c1 * 2))) {
+    //                 if (player[c1].x_add < 0) {
+    //                     player[c1].x_add += 16384;
+    //                     if (player[c1].x_add > 0)
+    //                         player[c1].x_add = 0;
+    //                     add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                 } else if (player[c1].x_add > 0) {
+    //                     player[c1].x_add -= 16384;
+    //                     if (player[c1].x_add < 0)
+    //                         player[c1].x_add = 0;
+    //                     add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
+    //                 }
+    //             }
+    //             if (player[c1].anim == 1) {
+    //                 player[c1].anim = 0;
+    //                 player[c1].frame = 0;
+    //                 player[c1].frame_tick = 0;
+    //                 player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //             }
+    //         }
+    //         if ((player[c1].jump_ready == 1) && player[c1].action_up) {
+    //             if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
+    //                 if ((player[c1].y >> 16) >= (160 + c1 * 2)) {
+    //                     player[c1].y_add = -280000L;
+    //                     player[c1].anim = 2;
+    //                     player[c1].frame = 0;
+    //                     player[c1].frame_tick = 0;
+    //                     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //                     player[c1].jump_ready = 0;
+    //                     playJumpSfx();
+    //                 }
+    //             } else {
+    //                 if ((player[c1].y >> 16) >= (138 + c1 * 2)) {
+    //                     player[c1].y_add = -280000L;
+    //                     player[c1].anim = 2;
+    //                     player[c1].frame = 0;
+    //                     player[c1].frame_tick = 0;
+    //                     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //                     player[c1].jump_ready = 0;
+    //                     playJumpSfx();
+    //                 }
+    //             }
+    //         }
+    //         if (!player[c1].action_up) {
+    //             if (player[c1].y_add < 0) {
+    //                 player[c1].y_add += 32768;
+    //                 if (player[c1].y_add > 0)
+    //                     player[c1].y_add = 0;
+    //             }
+    //         }
+    //         if (!player[c1].action_up)
+    //             player[c1].jump_ready = 1;
+    //         player[c1].y_add += 12288;
+    //         if (player[c1].y_add > 36864 && player[c1].anim != 3) {
+    //             player[c1].anim = 3;
+    //             player[c1].frame = 0;
+    //             player[c1].frame_tick = 0;
+    //             player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //         }
+    //         player[c1].y += player[c1].y_add;
+    //         if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
+    //             if ((player[c1].y >> 16) > (160 + c1 * 2)) {
+    //                 player[c1].y = (160L + c1 * 2) << 16;
+    //                 player[c1].y_add = 0;
+    //                 if (player[c1].anim != 0 && player[c1].anim != 1) {
+    //                     player[c1].anim = 0;
+    //                     player[c1].frame = 0;
+    //                     player[c1].frame_tick = 0;
+    //                     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //                 }
+    //             }
+    //         } else {
+    //             if ((player[c1].y >> 16) > (138 + c1 * 2)) {
+    //                 player[c1].y = (138L + c1 * 2) << 16;
+    //                 player[c1].y_add = 0;
+    //                 if (player[c1].anim != 0 && player[c1].anim != 1) {
+    //                     player[c1].anim = 0;
+    //                     player[c1].frame = 0;
+    //                     player[c1].frame_tick = 0;
+    //                     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    //                 }
+    //             }
+    //         }
+    //         player[c1].x += player[c1].x_add;
+    //         if ((player[c1].x >> 16) < 0) {
+    //             player[c1].x = 0;
+    //             player[c1].x_add = 0;
+    //         }
+    //         if ((player[c1].x >> 16) > JNB_WIDTH) {
+    //             new_game_flag = 1;
+    //         }
+    //         if ((player[c1].y >> 16) > (138 + c1 * 2)) {
+    //             if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (190 + c1 * 2)) {
+    //                 player[c1].x = (165L + c1 * 2) << 16;
+    //                 player[c1].x_add = 0;
+    //             }
+    //             if ((player[c1].x >> 16) > (190 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
+    //                 player[c1].x = (208L + c1 * 2) << 16;
+    //                 player[c1].x_add = 0;
+    //             }
+    //         }
+    //     }
+    //     player[c1].frame_tick++;
+    //     if (player[c1].frame_tick >= player_anims[player[c1].anim].frame[player[c1].frame].ticks) {
+    //         player[c1].frame++;
+    //         if (player[c1].frame >= player_anims[player[c1].anim].num_frames)
+    //             player[c1].frame = player_anims[player[c1].anim].restart_frame;
+    //         player[c1].frame_tick = 0;
+    //     }
+    //     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
+    // }
 
-    update_player_actions();
+    // updateRabbitsSprites(TRUE);
+    // update_objects();
 
-    for (s32 c1 = 0; c1 < JNB_MAX_PLAYERS; c1++) {
-        if (new_game_flag == 1) {
-            if ((player[c1].x >> 16) > (165 + c1 * 2)) {
-                if (player[c1].x_add < 0)
-                    player[c1].x_add += 16384;
-                else
-                    player[c1].x_add += 12288;
-                if (player[c1].x_add > 98304L)
-                    player[c1].x_add = 98304L;
-                player[c1].direction = 0;
-                if (player[c1].anim == 0) {
-                    player[c1].anim = 1;
-                    player[c1].frame = 0;
-                    player[c1].frame_tick = 0;
-                    player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                }
-                player[c1].enabled = 1;
-            }
-            if (!player[c1].action_up) {
-                if (player[c1].y_add < 0) {
-                    player[c1].y_add += 32768;
-                    if (player[c1].y_add > 0)
-                        player[c1].y_add = 0;
-                }
-            }
-            player[c1].y_add += 12288;
-            if (player[c1].y_add > 36864 && player[c1].anim != 3) {
-                player[c1].anim = 3;
-                player[c1].frame = 0;
-                player[c1].frame_tick = 0;
-                player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-            }
-            player[c1].y += player[c1].y_add;
-            if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
-                if ((player[c1].y >> 16) > (160 + c1 * 2)) {
-                    player[c1].y = (160L + c1 * 2) << 16;
-                    player[c1].y_add = 0;
-                    if (player[c1].anim != 0 && player[c1].anim != 1) {
-                        player[c1].anim = 0;
-                        player[c1].frame = 0;
-                        player[c1].frame_tick = 0;
-                        player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                    }
-                }
-            } else {
-                if ((player[c1].y >> 16) > (138 + c1 * 2)) {
-                    player[c1].y = (138L + c1 * 2) << 16;
-                    player[c1].y_add = 0;
-                    if (player[c1].anim != 0 && player[c1].anim != 1) {
-                        player[c1].anim = 0;
-                        player[c1].frame = 0;
-                        player[c1].frame_tick = 0;
-                        player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                    }
-                    if (!player[c1].action_up)
-                        player[c1].jump_ready = 1;
-                }
-            }
-            player[c1].x += player[c1].x_add;
-            if ((player[c1].y >> 16) > (138 + c1 * 2)) {
-                if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (190 + c1 * 2)) {
-                    player[c1].x = (165L + c1 * 2) << 16;
-                    player[c1].x_add = 0;
-                }
-                if ((player[c1].x >> 16) > (190 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
-                    player[c1].x = (208L + c1 * 2) << 16;
-                    player[c1].x_add = 0;
-                }
-            }
-        } else {
-            if (player[c1].action_left && player[c1].action_right) {
-                if (player[c1].direction == 1) {
-                    if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
-                        if (player[c1].x_add > 0) {
-                            player[c1].x_add -= 16384;
-                            if ((player[c1].y >> 16) >= (160 + c1 * 2))
-                                add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                        } else
-                            player[c1].x_add -= 12288;
-                    }
-                    if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
-                        if (player[c1].x_add > 0) {
-                            player[c1].x_add -= 16384;
-                            if ((player[c1].y >> 16) >= (138 + c1 * 2))
-                                add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                        } else
-                            player[c1].x_add -= 12288;
-                    }
-                    if (player[c1].x_add < -98304L)
-                        player[c1].x_add = -98304L;
-                    player[c1].direction = 1;
-                    if (player[c1].anim == 0) {
-                        player[c1].anim = 1;
-                        player[c1].frame = 0;
-                        player[c1].frame_tick = 0;
-                        player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                    }
-                } else {
-                    if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
-                        if (player[c1].x_add < 0) {
-                            player[c1].x_add += 16384;
-                            if ((player[c1].y >> 16) >= (160 + c1 * 2))
-                                add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                        } else
-                            player[c1].x_add += 12288;
-                    }
-                    if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
-                        if (player[c1].x_add < 0) {
-                            player[c1].x_add += 16384;
-                            if ((player[c1].y >> 16) >= (138 + c1 * 2))
-                                add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                        } else
-                            player[c1].x_add += 12288;
-                    }
-                    if (player[c1].x_add > 98304L)
-                        player[c1].x_add = 98304L;
-                    player[c1].direction = 0;
-                    if (player[c1].anim == 0) {
-                        player[c1].anim = 1;
-                        player[c1].frame = 0;
-                        player[c1].frame_tick = 0;
-                        player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                    }
-                }
-            } else if (player[c1].action_left) {
-                if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
-                    if (player[c1].x_add > 0) {
-                        player[c1].x_add -= 16384;
-                        if ((player[c1].y >> 16) >= (160 + c1 * 2))
-                            add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                    } else
-                        player[c1].x_add -= 12288;
-                }
-                if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
-                    if (player[c1].x_add > 0) {
-                        player[c1].x_add -= 16384;
-                        if ((player[c1].y >> 16) >= (138 + c1 * 2))
-                            add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                    } else
-                        player[c1].x_add -= 12288;
-                }
-                if (player[c1].x_add < -98304L)
-                    player[c1].x_add = -98304L;
-                player[c1].direction = 1;
-                if (player[c1].anim == 0) {
-                    player[c1].anim = 1;
-                    player[c1].frame = 0;
-                    player[c1].frame_tick = 0;
-                    player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                }
-            } else if (player[c1].action_right) {
-                if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
-                    if (player[c1].x_add < 0) {
-                        player[c1].x_add += 16384;
-                        if ((player[c1].y >> 16) >= (160 + c1 * 2))
-                            add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                    } else
-                        player[c1].x_add += 12288;
-                }
-                if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
-                    if (player[c1].x_add < 0) {
-                        player[c1].x_add += 16384;
-                        if ((player[c1].y >> 16) >= (138 + c1 * 2))
-                            add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                    } else
-                        player[c1].x_add += 12288;
-                }
-                if (player[c1].x_add > 98304L)
-                    player[c1].x_add = 98304L;
-                player[c1].direction = 0;
-                if (player[c1].anim == 0) {
-                    player[c1].anim = 1;
-                    player[c1].frame = 0;
-                    player[c1].frame_tick = 0;
-                    player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                }
-            } else {
-                if (((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) && (player[c1].y >> 16) >= (160 + c1 * 2)) {
-                    if (player[c1].x_add < 0) {
-                        player[c1].x_add += 16384;
-                        if (player[c1].x_add > 0)
-                            player[c1].x_add = 0;
-                        add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                    } else if (player[c1].x_add > 0) {
-                        player[c1].x_add -= 16384;
-                        if (player[c1].x_add < 0)
-                            player[c1].x_add = 0;
-                        add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                    }
-                }
-                if ((((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) && (player[c1].y >> 16) >= (138 + c1 * 2))) {
-                    if (player[c1].x_add < 0) {
-                        player[c1].x_add += 16384;
-                        if (player[c1].x_add > 0)
-                            player[c1].x_add = 0;
-                        add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                    } else if (player[c1].x_add > 0) {
-                        player[c1].x_add -= 16384;
-                        if (player[c1].x_add < 0)
-                            player[c1].x_add = 0;
-                        add_object(OBJ_SMOKE, (player[c1].x >> 16) + 2 + rnd(9), (player[c1].y >> 16) + 13 + rnd(5), 0, -16384 - rnd(8192), OBJ_ANIM_SMOKE, 0);
-                    }
-                }
-                if (player[c1].anim == 1) {
-                    player[c1].anim = 0;
-                    player[c1].frame = 0;
-                    player[c1].frame_tick = 0;
-                    player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                }
-            }
-            if ((player[c1].jump_ready == 1) && player[c1].action_up) {
-                if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
-                    if ((player[c1].y >> 16) >= (160 + c1 * 2)) {
-                        player[c1].y_add = -280000L;
-                        player[c1].anim = 2;
-                        player[c1].frame = 0;
-                        player[c1].frame_tick = 0;
-                        player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                        player[c1].jump_ready = 0;
-                        playJumpSfx();
-                    }
-                } else {
-                    if ((player[c1].y >> 16) >= (138 + c1 * 2)) {
-                        player[c1].y_add = -280000L;
-                        player[c1].anim = 2;
-                        player[c1].frame = 0;
-                        player[c1].frame_tick = 0;
-                        player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                        player[c1].jump_ready = 0;
-                        playJumpSfx();
-                    }
-                }
-            }
-            if (!player[c1].action_up) {
-                if (player[c1].y_add < 0) {
-                    player[c1].y_add += 32768;
-                    if (player[c1].y_add > 0)
-                        player[c1].y_add = 0;
-                }
-            }
-            if (!player[c1].action_up)
-                player[c1].jump_ready = 1;
-            player[c1].y_add += 12288;
-            if (player[c1].y_add > 36864 && player[c1].anim != 3) {
-                player[c1].anim = 3;
-                player[c1].frame = 0;
-                player[c1].frame_tick = 0;
-                player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-            }
-            player[c1].y += player[c1].y_add;
-            if ((player[c1].x >> 16) <= (165 + c1 * 2) || (player[c1].x >> 16) >= (208 + c1 * 2)) {
-                if ((player[c1].y >> 16) > (160 + c1 * 2)) {
-                    player[c1].y = (160L + c1 * 2) << 16;
-                    player[c1].y_add = 0;
-                    if (player[c1].anim != 0 && player[c1].anim != 1) {
-                        player[c1].anim = 0;
-                        player[c1].frame = 0;
-                        player[c1].frame_tick = 0;
-                        player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                    }
-                }
-            } else {
-                if ((player[c1].y >> 16) > (138 + c1 * 2)) {
-                    player[c1].y = (138L + c1 * 2) << 16;
-                    player[c1].y_add = 0;
-                    if (player[c1].anim != 0 && player[c1].anim != 1) {
-                        player[c1].anim = 0;
-                        player[c1].frame = 0;
-                        player[c1].frame_tick = 0;
-                        player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
-                    }
-                }
-            }
-            player[c1].x += player[c1].x_add;
-            if ((player[c1].x >> 16) < 0) {
-                player[c1].x = 0;
-                player[c1].x_add = 0;
-            }
-            if ((player[c1].x >> 16) > JNB_WIDTH) {
-                new_game_flag = 1;
-            }
-            if ((player[c1].y >> 16) > (138 + c1 * 2)) {
-                if ((player[c1].x >> 16) > (165 + c1 * 2) && (player[c1].x >> 16) < (190 + c1 * 2)) {
-                    player[c1].x = (165L + c1 * 2) << 16;
-                    player[c1].x_add = 0;
-                }
-                if ((player[c1].x >> 16) > (190 + c1 * 2) && (player[c1].x >> 16) < (208 + c1 * 2)) {
-                    player[c1].x = (208L + c1 * 2) << 16;
-                    player[c1].x_add = 0;
-                }
-            }
+#if JO_DEBUG
+    char value_string[5];
+    sprintf(value_string, "%d", text_fade_timeout);
+    jo_printf_with_color(1,1,JO_COLOR_INDEX_White, value_string);
+    sprintf(value_string, "%d", text_fade_step);
+    jo_printf_with_color(1,2,JO_COLOR_INDEX_White, value_string);
+    sprintf(value_string, "%d", text_display_timeout);
+    jo_printf_with_color(1,3,JO_COLOR_INDEX_White, value_string);
+#endif
+    
+    if (text_display_timeout > 0)
+    {
+        text_display_timeout--;
+
+        if (text_display_timeout == 0)
+        {
+            is_text_fading = true;
+            process_text_fade();
         }
-        player[c1].frame_tick++;
-        if (player[c1].frame_tick >= player_anims[player[c1].anim].frame[player[c1].frame].ticks) {
-            player[c1].frame++;
-            if (player[c1].frame >= player_anims[player[c1].anim].num_frames)
-                player[c1].frame = player_anims[player[c1].anim].restart_frame;
-            player[c1].frame_tick = 0;
+    }
+    else if (text_blank_timeout > 0)
+    {
+        text_blank_timeout--;
+
+        if (text_blank_timeout == 0)
+        {
+            is_text_fading = true;
+            process_text_fade();
+
+            jo_printf_with_color(1, 25, JO_COLOR_INDEX_White, message_blank);
+            jo_printf_with_color(1, 26, JO_COLOR_INDEX_White, message_blank);
+            jo_printf_with_color(1, 25, JO_COLOR_INDEX_White, message[cur_message]);
+            jo_printf_with_color(1, 26, JO_COLOR_INDEX_White, message[cur_message+1]);
+
+            cur_message += 2;
+            if (cur_message >= NUM_MESSAGES)
+                cur_message = 0;
         }
-        player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
     }
-
-    updateRabbitsSprites(TRUE);
-    update_objects();
-
-    if (textTimeOut == 0) {
-        VDP_clearTextLine(23);
-        VDP_clearTextLine(24);
-        VDP_drawText(message[cur_message], 1, 23);
-        VDP_drawText(message[cur_message + 1], 1, 24);
-
-        cur_message += 2;
-        if (cur_message >= NUM_MESSAGES)
-            cur_message = 0;
-
-        PAL_fade(0, 63, fadeTextPalette, palette, 20, TRUE);
-        textTimeOut = 180;
+    else if (text_fade_timeout == 0) 
+    {
+        text_blank_timeout = MAX_TEXT_DISPLAY_TIMEOUT;
     }
-    if (textTimeOut == 30) {
-        PAL_fade(0, 63, palette, fadeTextPalette, 20, TRUE);
+    else if (text_fade_timeout == 255) 
+    {
+        text_display_timeout = MAX_TEXT_DISPLAY_TIMEOUT;
     }
-
-    textTimeOut--;
+    else
+    {
+        if (is_text_fading)
+            process_text_fade();
+    }
     
     return new_game_flag;
 }

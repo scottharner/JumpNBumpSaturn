@@ -21,6 +21,7 @@ JO_NTSC = 1
 
 SRCS = \
     ../src/main.c \
+	../src/menu.c \
 	../src/utils.c \
 	../src/input.c
 

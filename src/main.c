@@ -35,7 +35,7 @@
 
 // #include "bank.h"
 // #include "global.h"
-// #include "menu.h"
+#include "menu.h"
 // #include "game.h"
 // #include "rabbits.h"
 // #include "objects.h"
@@ -184,19 +184,6 @@ void init()
 
 //         handleInput();
 
-//         if (game_state == GAME_STATE_BOOT) {
-//             loadMenu();
-//             initMenu();
-//             PAL_fadeInAll(palette, 30, TRUE);
-
-//             // start music
-//             if (SYS_isNTSC()) {
-//                 XGM_startPlay(jump_music_ntsc);
-//             } else {
-//                 XGM_startPlay(jump_music_pal);
-//             }
-
-//             game_state = GAME_STATE_MENU;
 //         } else if (game_state == GAME_STATE_MENU) {
 //             u16 ret = menuFrame();
 
@@ -347,11 +334,15 @@ void title()
 {
 	if (action_counter <= 1)
 	{
+//             loadMenu();
+            init_menu();
+//             PAL_fadeInAll(palette, 30, TRUE);
 		jo_audio_stop_cd();
 		jo_audio_play_cd_track(TITLE_TRACKID, TITLE_TRACKID, true);
 	}
 
-
+    unsigned short result = menu_frame();
+	(void)result; // avoid compiler warning until we use this
 }
 
 void update_game()

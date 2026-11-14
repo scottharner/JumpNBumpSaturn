@@ -1,6 +1,6 @@
 #pragma once
 
-void initMenu();
-void loadMenu();
-void unloadMenu();
-u16 menuFrame();
+void init_menu();
+//void loadMenu();
+//void unloadMenu();
+unsigned short menu_frame();

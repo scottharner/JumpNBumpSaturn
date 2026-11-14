@@ -1,6 +1,6 @@
 #pragma once
 
-#include <genesis.h>
+//#include <genesis.h>
 
 #define JNB_VERSION "1.60"
 
@@ -55,54 +55,54 @@
 // #define NUM_OBJECTS 200
 #define NUM_OBJECTS 70
 
-struct {
-    u16 joy;
-    u16 changed;
-    u16 state;
-} input;
+// struct {
+//     u16 joy;
+//     u16 changed;
+//     u16 state;
+// } input;
 
-typedef struct {
-    int action_left,action_up,action_right;
-    int enabled, dead_flag;
-    int bumps;
-    int bumped[JNB_MAX_PLAYERS];
-    int x, y;
-    int x_add, y_add;
-    int direction, jump_ready, jump_abort, in_water;
-    int anim, frame, frame_tick, image;
-} player_t;
+// typedef struct {
+//     int action_left,action_up,action_right;
+//     int enabled, dead_flag;
+//     int bumps;
+//     int bumped[JNB_MAX_PLAYERS];
+//     int x, y;
+//     int x_add, y_add;
+//     int direction, jump_ready, jump_abort, in_water;
+//     int anim, frame, frame_tick, image;
+// } player_t;
 
-typedef struct {
-    u16 num_frames;
-    u16 restart_frame;
-    struct {
-        u16 image;
-        u16 ticks;
-    } frame[4];
-} player_anim_t;
+// typedef struct {
+//     u16 num_frames;
+//     u16 restart_frame;
+//     struct {
+//         u16 image;
+//         u16 ticks;
+//     } frame[4];
+// } player_anim_t;
 
-/* main.c */
+// /* main.c */
 
-extern u16 VDPTilesFilled;
-extern u16 palette[];
-extern player_t player[];
-extern player_anim_t player_anims[];
-extern const u16 (*ban_map)[32];
-extern bool ai[];
+// extern u16 VDPTilesFilled;
+// extern u16 palette[];
+// extern player_t player[];
+// extern player_anim_t player_anims[];
+// extern const u16 (*ban_map)[32];
+// extern bool ai[];
 
-// SAT pointer
-extern VDPSprite* vdpSprite;
-// VDP sprite index (for link field)
-extern u8 vdpSpriteInd;
+// // SAT pointer
+// extern VDPSprite* vdpSprite;
+// // VDP sprite index (for link field)
+// extern u8 vdpSpriteInd;
 
-u16 rnd(u16 max);
+// u16 rnd(u16 max);
 
-/* interrpt.c */
+// /* interrpt.c */
 
-void initKeyb();
-int key_pressed(int key);
-void addkey(unsigned int key);
+// void initKeyb();
+// int key_pressed(int key);
+// void addkey(unsigned int key);
 
-/* input.c */
+// /* input.c */
 
-void update_player_actions();
+// void update_player_actions();
