@@ -55,6 +55,9 @@
 // #define NUM_OBJECTS 200
 #define NUM_OBJECTS 70
 
+#define TEXT_ZINDEX 400
+#define BACKGROUND_ZINDEX 500
+
 // struct {
 //     u16 joy;
 //     u16 changed;

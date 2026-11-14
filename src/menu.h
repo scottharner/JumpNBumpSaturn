@@ -1,6 +1,6 @@
 #pragma once
 
 void init_menu();
-//void loadMenu();
+void load_menu(int title_sprite_id);
 //void unloadMenu();
 unsigned short menu_frame();

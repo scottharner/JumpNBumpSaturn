@@ -50,6 +50,7 @@
 #define GAME_TRACKID 2
 static int action_counter;
 static mode current_game_mode;
+static int title_sprite_id;
 
 // static int game_state = GAME_STATE_BOOT;
 
@@ -94,6 +95,9 @@ void init()
 	// reset_scores(hisc);
 	// load_sound_config();
 	// CDDA_SetVolume(music_vol);
+
+	// load sprites
+	title_sprite_id = jo_sprite_add_tga(JO_NULL, "TITLE.TGA", JO_COLOR_Black);
 
 	reset_game();
 }
@@ -334,13 +338,13 @@ void title()
 {
 	if (action_counter <= 1)
 	{
-//             loadMenu();
-            init_menu();
+		init_menu();
 //             PAL_fadeInAll(palette, 30, TRUE);
 		jo_audio_stop_cd();
 		jo_audio_play_cd_track(TITLE_TRACKID, TITLE_TRACKID, true);
 	}
 
+	load_menu(title_sprite_id);
     unsigned short result = menu_frame();
 	(void)result; // avoid compiler warning until we use this
 }

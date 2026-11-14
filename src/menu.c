@@ -147,11 +147,11 @@ void init_menu()
     text_blank_timeout = 0;
 }
 
-// void loadMenu() {
+void load_menu(int title_sprite_id) 
+{
 //     memcpy(&palette[0], image_menu.palette->data, 16 * 2);
 
-//     VDP_loadTileSet(image_menu.tileset, VDPTilesFilled, DMA);
-//     VDP_setTileMapEx(BG_B, image_menu.tilemap, TILE_ATTR_FULL(PAL0, FALSE, FALSE, FALSE, VDPTilesFilled), 0, 0, 0, 0, 40, 28, DMA);
+    jo_sprite_draw3D2(title_sprite_id, 0, 0, BACKGROUND_ZINDEX);
 //     VDP_setTileMapEx(BG_A, image_menu.tilemap, TILE_ATTR_FULL(PAL0, TRUE, FALSE, FALSE, VDPTilesFilled), 0, 16, 0, 28, 40, 6, DMA);
 //     VDPTilesFilled += image_menu.tileset->numTile;
 
@@ -165,7 +165,7 @@ void init_menu()
 //     palette[31] = RGB24_TO_VDPCOLOR(0xffffff);
 //     memcpy(&fadeTextPalette[0], &palette[0], 64 * 2);
 //     fadeTextPalette[31] = RGB24_TO_VDPCOLOR(0);
-// }
+}
 
 // void unloadMenu() {
 //     SYS_disableInts();
