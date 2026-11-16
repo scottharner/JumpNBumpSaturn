@@ -51,6 +51,78 @@
 static int action_counter;
 static mode current_game_mode;
 static int title_sprite_id;
+static int rabbit11_sprite_id;
+static int rabbit12_sprite_id;
+static int rabbit13_sprite_id;
+static int rabbit14_sprite_id;
+static int rabbit15_sprite_id;
+static int rabbit16_sprite_id;
+static int rabbit17_sprite_id;
+static int rabbit18_sprite_id;
+static int rabbit19_sprite_id;
+static int rabbit110_sprite_id;
+static int rabbit111_sprite_id;
+static int rabbit112_sprite_id;
+static int rabbit113_sprite_id;
+static int rabbit114_sprite_id;
+static int rabbit115_sprite_id;
+static int rabbit116_sprite_id;
+static int rabbit117_sprite_id;
+static int rabbit118_sprite_id;
+static int rabbit21_sprite_id;
+static int rabbit22_sprite_id;
+static int rabbit23_sprite_id;
+static int rabbit24_sprite_id;
+static int rabbit25_sprite_id;
+static int rabbit26_sprite_id;
+static int rabbit27_sprite_id;
+static int rabbit28_sprite_id;
+static int rabbit29_sprite_id;
+static int rabbit210_sprite_id;
+static int rabbit211_sprite_id;
+static int rabbit212_sprite_id;
+static int rabbit213_sprite_id;
+static int rabbit214_sprite_id;
+static int rabbit215_sprite_id;
+static int rabbit216_sprite_id;
+static int rabbit217_sprite_id;
+static int rabbit218_sprite_id;
+static int rabbit31_sprite_id;
+static int rabbit32_sprite_id;
+static int rabbit33_sprite_id;
+static int rabbit34_sprite_id;
+static int rabbit35_sprite_id;
+static int rabbit36_sprite_id;
+static int rabbit37_sprite_id;
+static int rabbit38_sprite_id;
+static int rabbit39_sprite_id;
+static int rabbit310_sprite_id;
+static int rabbit311_sprite_id;
+static int rabbit312_sprite_id;
+static int rabbit313_sprite_id;
+static int rabbit314_sprite_id;
+static int rabbit315_sprite_id;
+static int rabbit316_sprite_id;
+static int rabbit317_sprite_id;
+static int rabbit318_sprite_id;
+static int rabbit41_sprite_id;
+static int rabbit42_sprite_id;
+static int rabbit43_sprite_id;
+static int rabbit44_sprite_id;
+static int rabbit45_sprite_id;
+static int rabbit46_sprite_id;
+static int rabbit47_sprite_id;
+static int rabbit48_sprite_id;
+static int rabbit49_sprite_id;
+static int rabbit410_sprite_id;
+static int rabbit411_sprite_id;
+static int rabbit412_sprite_id;
+static int rabbit413_sprite_id;
+static int rabbit414_sprite_id;
+static int rabbit415_sprite_id;
+static int rabbit416_sprite_id;
+static int rabbit417_sprite_id;
+static int rabbit418_sprite_id;
 
 // static int game_state = GAME_STATE_BOOT;
 
@@ -71,6 +143,30 @@ static int title_sprite_id;
 // u8 vdpSpriteInd;
 
 // const u16 (*ban_map)[32];
+
+static jo_tile     rabbit_tileset[] =
+{
+	{0, 0, 16, 16},
+	{16, 0, 16, 16},
+	{32, 0, 16, 16},
+	{48, 0, 16, 16},
+	{64, 0, 16, 16},
+	{80, 0, 16, 16},
+	{96, 0, 16, 16},
+	{112, 0, 16, 16},
+	{128, 0, 16, 16},
+	{144, 0, 16, 16},
+	{160, 0, 16, 16},
+	{176, 0, 16, 16},
+	{192, 0, 16, 16},
+	{208, 0, 16, 16},
+	{224, 0, 16, 16},
+	{240, 0, 16, 16},
+	{256, 0, 16, 16},
+	{272, 0, 16, 16}
+};
+
+#define RABBIT_TILE_COUNT JO_TILE_COUNT(rabbit_tileset)
 
 void reset_game()
 {
@@ -98,6 +194,78 @@ void init()
 
 	// load sprites
 	title_sprite_id = jo_sprite_add_tga(JO_NULL, "TITLE.TGA", JO_COLOR_Black);
+	rabbit11_sprite_id = jo_sprite_add_tga_tileset(JO_ROOT_DIR, "RABBIT1.TGA", JO_COLOR_RGB(255, 0, 255), rabbit_tileset, RABBIT_TILE_COUNT);
+	rabbit12_sprite_id = rabbit11_sprite_id + 1;
+	rabbit13_sprite_id = rabbit11_sprite_id + 2;
+	rabbit14_sprite_id = rabbit11_sprite_id + 3;
+	rabbit15_sprite_id = rabbit11_sprite_id + 4;
+	rabbit16_sprite_id = rabbit11_sprite_id + 5;
+	rabbit17_sprite_id = rabbit11_sprite_id + 6;
+	rabbit18_sprite_id = rabbit11_sprite_id + 7;
+	rabbit19_sprite_id = rabbit11_sprite_id + 8;
+	rabbit110_sprite_id = rabbit11_sprite_id + 9;
+	rabbit111_sprite_id = rabbit11_sprite_id + 10;
+	rabbit112_sprite_id = rabbit11_sprite_id + 11;
+	rabbit113_sprite_id = rabbit11_sprite_id + 12;
+	rabbit114_sprite_id = rabbit11_sprite_id + 13;
+	rabbit115_sprite_id = rabbit11_sprite_id + 14;
+	rabbit116_sprite_id = rabbit11_sprite_id + 15;
+	rabbit117_sprite_id = rabbit11_sprite_id + 16;
+	rabbit118_sprite_id = rabbit11_sprite_id + 17;
+	rabbit21_sprite_id = jo_sprite_add_tga_tileset(JO_ROOT_DIR, "RABBIT2.TGA", JO_COLOR_RGB(255, 0, 255), rabbit_tileset, RABBIT_TILE_COUNT);
+	rabbit22_sprite_id = rabbit21_sprite_id + 1;
+	rabbit23_sprite_id = rabbit21_sprite_id + 2;
+	rabbit24_sprite_id = rabbit21_sprite_id + 3;
+	rabbit25_sprite_id = rabbit21_sprite_id + 4;
+	rabbit26_sprite_id = rabbit21_sprite_id + 5;
+	rabbit27_sprite_id = rabbit21_sprite_id + 6;
+	rabbit28_sprite_id = rabbit21_sprite_id + 7;
+	rabbit29_sprite_id = rabbit21_sprite_id + 8;
+	rabbit210_sprite_id = rabbit21_sprite_id + 9;
+	rabbit211_sprite_id = rabbit21_sprite_id + 10;
+	rabbit212_sprite_id = rabbit21_sprite_id + 11;
+	rabbit213_sprite_id = rabbit21_sprite_id + 12;
+	rabbit214_sprite_id = rabbit21_sprite_id + 13;
+	rabbit215_sprite_id = rabbit21_sprite_id + 14;
+	rabbit216_sprite_id = rabbit21_sprite_id + 15;
+	rabbit217_sprite_id = rabbit21_sprite_id + 16;
+	rabbit218_sprite_id = rabbit21_sprite_id + 17;
+	rabbit31_sprite_id = jo_sprite_add_tga_tileset(JO_ROOT_DIR, "RABBIT3.TGA", JO_COLOR_RGB(255, 0, 255), rabbit_tileset, RABBIT_TILE_COUNT);
+	rabbit32_sprite_id = rabbit31_sprite_id + 1;
+	rabbit33_sprite_id = rabbit31_sprite_id + 2;
+	rabbit34_sprite_id = rabbit31_sprite_id + 3;
+	rabbit35_sprite_id = rabbit31_sprite_id + 4;
+	rabbit36_sprite_id = rabbit31_sprite_id + 5;
+	rabbit37_sprite_id = rabbit31_sprite_id + 6;
+	rabbit38_sprite_id = rabbit31_sprite_id + 7;
+	rabbit39_sprite_id = rabbit31_sprite_id + 8;
+	rabbit310_sprite_id = rabbit31_sprite_id + 9;
+	rabbit311_sprite_id = rabbit31_sprite_id + 10;
+	rabbit312_sprite_id = rabbit31_sprite_id + 11;
+	rabbit313_sprite_id = rabbit31_sprite_id + 12;
+	rabbit314_sprite_id = rabbit31_sprite_id + 13;
+	rabbit315_sprite_id = rabbit31_sprite_id + 14;
+	rabbit316_sprite_id = rabbit31_sprite_id + 15;
+	rabbit317_sprite_id = rabbit31_sprite_id + 16;
+	rabbit318_sprite_id = rabbit31_sprite_id + 17;
+	rabbit41_sprite_id = jo_sprite_add_tga_tileset(JO_ROOT_DIR, "RABBIT4.TGA", JO_COLOR_RGB(255, 0, 255), rabbit_tileset, RABBIT_TILE_COUNT);
+	rabbit42_sprite_id = rabbit41_sprite_id + 1;
+	rabbit43_sprite_id = rabbit41_sprite_id + 2;
+	rabbit44_sprite_id = rabbit41_sprite_id + 3;
+	rabbit45_sprite_id = rabbit41_sprite_id + 4;
+	rabbit46_sprite_id = rabbit41_sprite_id + 5;
+	rabbit47_sprite_id = rabbit41_sprite_id + 6;
+	rabbit48_sprite_id = rabbit41_sprite_id + 7;
+	rabbit49_sprite_id = rabbit41_sprite_id + 8;
+	rabbit410_sprite_id = rabbit41_sprite_id + 9;
+	rabbit411_sprite_id = rabbit41_sprite_id + 10;
+	rabbit412_sprite_id = rabbit41_sprite_id + 11;
+	rabbit413_sprite_id = rabbit41_sprite_id + 12;
+	rabbit414_sprite_id = rabbit41_sprite_id + 13;
+	rabbit415_sprite_id = rabbit41_sprite_id + 14;
+	rabbit416_sprite_id = rabbit41_sprite_id + 15;
+	rabbit417_sprite_id = rabbit41_sprite_id + 16;
+	rabbit418_sprite_id = rabbit41_sprite_id + 17;
 
 	reset_game();
 }
