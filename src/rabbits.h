@@ -1,4 +1,4 @@
 #pragma once
 
-void loadRabbits();
-void updateRabbitsSprites(bool forceAll);
+void load_rabbits();
+void update_rabbits_sprites(bool forceAll);

@@ -55,6 +55,7 @@
 // #define NUM_OBJECTS 200
 #define NUM_OBJECTS 70
 
+#define RABBIT_ZINDEX 350
 #define TEXT_ZINDEX 400
 #define BACKGROUND_ZINDEX 500
 
@@ -64,16 +65,16 @@
 //     u16 state;
 // } input;
 
-// typedef struct {
-//     int action_left,action_up,action_right;
-//     int enabled, dead_flag;
-//     int bumps;
-//     int bumped[JNB_MAX_PLAYERS];
-//     int x, y;
-//     int x_add, y_add;
-//     int direction, jump_ready, jump_abort, in_water;
-//     int anim, frame, frame_tick, image;
-// } player_t;
+typedef struct {
+    int action_left,action_up,action_right;
+    int enabled, dead_flag;
+    int bumps;
+    int bumped[JNB_MAX_PLAYERS];
+    int x, y;
+    int x_add, y_add;
+    int direction, jump_ready, jump_abort, in_water;
+    int anim, frame, frame_tick, image;
+} player_t;
 
 // typedef struct {
 //     u16 num_frames;
@@ -84,11 +85,11 @@
 //     } frame[4];
 // } player_anim_t;
 
-// /* main.c */
+/* main.c */
 
 // extern u16 VDPTilesFilled;
 // extern u16 palette[];
-// extern player_t player[];
+extern player_t player[];
 // extern player_anim_t player_anims[];
 // extern const u16 (*ban_map)[32];
 // extern bool ai[];

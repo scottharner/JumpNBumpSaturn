@@ -992,7 +992,7 @@ u16 gameFrame() {
 
     steer_players();
     collision_check();
-    updateRabbitsSprites(FALSE);
+    update_rabbits_sprites(FALSE);
     update_objects();
 
     return endscore_reached;

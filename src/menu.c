@@ -3,7 +3,7 @@
 // #include "bank.h"
 #include "global.h"
 // #include "objects.h"
-// #include "rabbits.h"
+#include "rabbits.h"
 // #include "sfx.h"
 // #include "resources.h"
 
@@ -503,7 +503,7 @@ unsigned short menu_frame() {
     //     player[c1].image = player_anims[player[c1].anim].frame[player[c1].frame].image + player[c1].direction * 9;
     // }
 
-    // updateRabbitsSprites(TRUE);
+    update_rabbits_sprites(true);
     // update_objects();
 
 #if JO_DEBUG
