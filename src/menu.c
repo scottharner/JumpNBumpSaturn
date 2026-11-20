@@ -6,6 +6,7 @@
 #include "rabbits.h"
 // #include "sfx.h"
 // #include "resources.h"
+#include "utils.h"
 
 #define DEFAULT_TEXT_FADE_STEP 3
 #define MAX_TEXT_DISPLAY_TIMEOUT 30
@@ -101,21 +102,21 @@ static const char * const message[] = {
 
 void init_menu() 
 {
-//     for (unsigned short c1 = 0; c1 < JNB_MAX_PLAYERS; c1++) {
-//         player[c1].enabled = 0;
-//         player[c1].x = (long) rnd(150) << 16;
-//         player[c1].y = (160L + c1 * 2) << 16;
-//         player[c1].x_add = 0;
-//         player[c1].y_add = 0;
-//         player[c1].direction = rnd(2);
-//         player[c1].jump_ready = 1;
-//         player[c1].anim = 0;
-//         player[c1].frame = 0;
-//         player[c1].frame_tick = 0;
-//         player[c1].image = player_anims[0].frame[0].image;
+    for (unsigned short c1 = 0; c1 < JNB_MAX_PLAYERS; c1++) {
+        player[c1].enabled = 0;
+        player[c1].x = (long) (get_random(150)-1) << 16;
+        player[c1].y = (160L + c1 * 2) << 16;
+        player[c1].x_add = 0;
+        player[c1].y_add = 0;
+        player[c1].direction = (get_random(2)-1);
+        player[c1].jump_ready = 1;
+        player[c1].anim = 0;
+        player[c1].frame = 0;
+        player[c1].frame_tick = 0;
+        player[c1].image = player_anims[0].frame[0].image;
 
-//         ai[c1] = FALSE; // set AI to false
-//     }
+        ai[c1] = false; // set AI to false
+    }
 
 //     ban_map = (unsigned short (*)[32])menu_map;
 

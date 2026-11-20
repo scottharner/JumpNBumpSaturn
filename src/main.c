@@ -54,12 +54,12 @@ static int title_sprite_id;
 
 // static int game_state = GAME_STATE_BOOT;
 
-// bool ai[JNB_MAX_PLAYERS];
+bool ai[JNB_MAX_PLAYERS];
 
 // //Index of the last tile that has been placed, useful to avoid overlapping
 // u16 VDPTilesFilled = TILE_USER_INDEX;
 // u16 palette[64];
-// player_anim_t player_anims[7];
+player_anim_t player_anims[7];
 player_t player[JNB_MAX_PLAYERS];
 
 // static u16 portMapping[4];
@@ -96,6 +96,30 @@ void init()
 	// load_sound_config();
 	// CDDA_SetVolume(music_vol);
 
+	int player_anim_data[] = {
+        1, 0, 0, 0x7fff, 0, 0, 0, 0, 0, 0,
+        4, 0, 0, 4, 1, 4, 2, 4, 3, 4,
+        1, 0, 4, 0x7fff, 0, 0, 0, 0, 0, 0,
+        4, 2, 5, 8, 6, 10, 7, 3, 6, 3,
+        1, 0, 6, 0x7fff, 0, 0, 0, 0, 0, 0,
+        2, 1, 5, 8, 4, 0x7fff, 0, 0, 0, 0,
+        1, 0, 8, 5, 0, 0, 0, 0, 0, 0
+    };
+
+    for (unsigned int c1 = 0; c1 < 7; c1++) {
+        player_anims[c1].num_frames = player_anim_data[c1 * 10];
+        player_anims[c1].restart_frame = player_anim_data[c1 * 10 + 1];
+        for (unsigned int c2 = 0; c2 < 4; c2++) {
+            player_anims[c1].frame[c2].image = player_anim_data[c1 * 10 + c2 * 2 + 2];
+            player_anims[c1].frame[c2].ticks = player_anim_data[c1 * 10 + c2 * 2 + 3];
+        }
+    }
+
+    for(unsigned int c1 = 0; c1 < JNB_MAX_PLAYERS; c1++)		// reset player values
+    {
+        ai[c1] = false;
+    }
+	
 	// load sprites
 	title_sprite_id = jo_sprite_add_tga(JO_NULL, "TITLE.TGA", JO_COLOR_Black);
 	load_rabbits();
@@ -103,29 +127,7 @@ void init()
 }
 
 // static void initProgram() {
-//     int player_anim_data[] = {
-//         1, 0, 0, 0x7fff, 0, 0, 0, 0, 0, 0,
-//         4, 0, 0, 4, 1, 4, 2, 4, 3, 4,
-//         1, 0, 4, 0x7fff, 0, 0, 0, 0, 0, 0,
-//         4, 2, 5, 8, 6, 10, 7, 3, 6, 3,
-//         1, 0, 6, 0x7fff, 0, 0, 0, 0, 0, 0,
-//         2, 1, 5, 8, 4, 0x7fff, 0, 0, 0, 0,
-//         1, 0, 8, 5, 0, 0, 0, 0, 0, 0
-//     };
 
-//     for (u32 c1 = 0; c1 < 7; c1++) {
-//         player_anims[c1].num_frames = player_anim_data[c1 * 10];
-//         player_anims[c1].restart_frame = player_anim_data[c1 * 10 + 1];
-//         for (u32 c2 = 0; c2 < 4; c2++) {
-//             player_anims[c1].frame[c2].image = player_anim_data[c1 * 10 + c2 * 2 + 2];
-//             player_anims[c1].frame[c2].ticks = player_anim_data[c1 * 10 + c2 * 2 + 3];
-//         }
-//     }
-
-//     for(u32 c1 = 0; c1 < JNB_MAX_PLAYERS; c1++)		// reset player values
-//     {
-//         ai[c1] = FALSE;
-//     }
 
 //     init_objects();
 //     initKeyb();

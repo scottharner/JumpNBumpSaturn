@@ -76,23 +76,23 @@ typedef struct {
     int anim, frame, frame_tick, image;
 } player_t;
 
-// typedef struct {
-//     u16 num_frames;
-//     u16 restart_frame;
-//     struct {
-//         u16 image;
-//         u16 ticks;
-//     } frame[4];
-// } player_anim_t;
+typedef struct {
+    unsigned short num_frames;
+    unsigned short restart_frame;
+    struct {
+        unsigned short image;
+        unsigned short ticks;
+    } frame[4];
+} player_anim_t;
 
 /* main.c */
 
 // extern u16 VDPTilesFilled;
 // extern u16 palette[];
 extern player_t player[];
-// extern player_anim_t player_anims[];
+extern player_anim_t player_anims[];
 // extern const u16 (*ban_map)[32];
-// extern bool ai[];
+extern bool ai[];
 
 // // SAT pointer
 // extern VDPSprite* vdpSprite;
